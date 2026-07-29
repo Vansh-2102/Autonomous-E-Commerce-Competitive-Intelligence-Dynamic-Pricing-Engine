@@ -20,44 +20,26 @@ An enterprise-grade, real-time autonomous competitive intelligence and dynamic p
 ## 🏗️ Architecture Diagram
 
 ```mermaid
-flowchart TD
-    subgraph Client ["Frontend (Next.js 14 Generative UI)"]
-        UI[Dashboard UI]
-        WS_Client[WebSocket Listener]
-        CSV_Up[CSV Catalog Upload]
-    end
+graph TD
+    UI["Next.js 14 Dashboard"]
+    API["FastAPI REST & WebSockets"]
+    Orchestrator["Pricing Orchestrator Engine"]
+    Serper["Serper Google Shopping API"]
+    Groq["Groq LLaMA 3 AI Sentiment Agent"]
+    MySQL[("MySQL Database")]
+    Redis[("Redis Pub/Sub & Celery")]
+    Chroma[("ChromaDB Vector Store")]
 
-    subgraph Backend ["Backend System (FastAPI & Celery)"]
-        API[FastAPI REST API]
-        Orchestrator[Pricing Orchestrator]
-        WS_Server[WebSocket Publisher]
-    end
-
-    subgraph External ["External Services & LLMs"]
-        Serper[Serper API Google Shopping]
-        Groq[Groq LLaMA 3 Sentiment Agent]
-    end
-
-    subgraph Storage ["Data & Messaging Layer"]
-        MySQL[(MySQL 8.0 Database)]
-        Redis[(Redis Pub/Sub & Celery Broker)]
-        Chroma[(ChromaDB Vector Store)]
-    end
-
-    UI -->|POST /api/trigger/:sku| API
-    CSV_Up -->|POST /api/upload-catalog| API
-    API --> Orchestrator
-    
-    Orchestrator -->|Live Price Search| Serper
-    Orchestrator -->|Sentiment Reasoning| Groq
-    Orchestrator -->|Query Product & COGS| MySQL
-    Orchestrator -->|Semantic Catalog Match| Chroma
-    
-    Orchestrator -->|Persist Recommendation| MySQL
-    Orchestrator -->|Publish UI Payload| Redis
-    Redis --> WS_Server
-    WS_Server -->|Stream Generative UI Card| WS_Client
-    WS_Client --> UI
+    UI -->|1. Trigger Price Scan / Search SKU| API
+    UI -->|2. Upload CSV Catalog & COGS| API
+    API -->|3. Run Pricing Pipeline| Orchestrator
+    Orchestrator -->|4. Live Web Price Scrape| Serper
+    Orchestrator -->|5. Demand & Sentiment Analysis| Groq
+    Orchestrator -->|6. Fetch Sourcing Cost & MAP| MySQL
+    Orchestrator -->|7. Semantic Title Match| Chroma
+    Orchestrator -->|8. Persist Price Recommendation| MySQL
+    Orchestrator -->|9. Publish Card Event| Redis
+    Redis -->|10. Stream Generative UI Card| UI
 ```
 
 ---
