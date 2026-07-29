@@ -1,0 +1,4 @@
+-r requirements.txt
+deepeval>=0.20.0
+sentence-transformers>=2.2.2
+playwright>=1.40.0
