@@ -149,3 +149,5 @@ final_price = max(guardrail_price_floor, target_price)
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
+![alt text](image.png)
