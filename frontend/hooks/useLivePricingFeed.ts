@@ -5,6 +5,33 @@ import { PricingRecommendationCard } from "@/types/pricing";
 
 export type ConnectionStatus = "live" | "reconnecting" | "offline";
 
+const getApprovedMap = () => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem("approved_pricing_map");
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+};
+
+const mergeApprovedProps = (card: PricingRecommendationCard): PricingRecommendationCard => {
+  const approvedMap = getApprovedMap();
+  const entry = approvedMap[card.props.sku];
+  if (entry && entry.isApproved) {
+    return {
+      ...card,
+      props: {
+        ...card.props,
+        isApproved: true,
+        currentPrice: entry.approvedPrice || card.props.recommendedPrice,
+        expectedMarginDelta: "+0.0%",
+      },
+    };
+  }
+  return card;
+};
+
 export function useLivePricingFeed(wsUrl: string) {
   const [cards, setCards] = useState<PricingRecommendationCard[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("offline");
@@ -35,16 +62,17 @@ export function useLivePricingFeed(wsUrl: string) {
       try {
         const data = JSON.parse(event.data);
         if (data.component === "PricingRecommendationCard") {
+          const cardWithApproval = mergeApprovedProps(data);
           setCards((prev) => {
             const existingIndex = prev.findIndex(
-              (c) => c.props.sku === data.props.sku
+              (c) => c.props.sku === cardWithApproval.props.sku
             );
             if (existingIndex >= 0) {
               const next = [...prev];
-              next[existingIndex] = data;
+              next[existingIndex] = cardWithApproval;
               return next;
             }
-            return [data, ...prev];
+            return [cardWithApproval, ...prev];
           });
         }
       } catch (err) {
@@ -196,7 +224,7 @@ export function useLivePricingFeed(wsUrl: string) {
             ],
           },
         },
-      ]);
+      ].map(mergeApprovedProps));
     }
   }, [cards.length]);
 

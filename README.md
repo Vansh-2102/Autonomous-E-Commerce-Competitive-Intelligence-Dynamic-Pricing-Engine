@@ -1,19 +1,20 @@
 # 🛍️ Autonomous E-Commerce Competitive Intelligence & Dynamic Pricing Engine
 
-An enterprise-grade, real-time autonomous competitive intelligence and dynamic pricing engine powered by **Next.js 14 Generative UI**, **FastAPI**, **Serper Live Web Scraping**, **Groq LLaMA 3 Sentiment Reasoning**, **ChromaDB Vector Matching**, **Celery Async Task Queues**, and **Deterministic Margin Guardrails**.
+An enterprise-grade, real-time autonomous competitive intelligence and dynamic pricing engine powered by **Next.js 14 Generative UI**, **FastAPI**, **Firebase Authentication**, **Serper Live Web Scraping**, **Groq LLaMA 3 Sentiment Reasoning**, **ChromaDB Vector Matching**, **Celery Async Task Queues**, and **Deterministic Margin Guardrails**.
 
 ---
 
 ## ✨ Key Features
 
+- **🔐 Dual Authentication Base Login**: Secure dashboard access supporting **Google OAuth Sign-In** and **Email & Password** login/signup via Firebase Auth, complete with Next.js middleware route guarding, profile avatars, and session cookies.
 - **🌐 Live Web & E-Commerce Scraping**: Scrapes real-time live prices directly from Indian e-commerce marketplaces (**Amazon.in**, **Flipkart**, **Croma**, **Reliance Digital**, etc.) via Serper Google Shopping API and Playwright.
 - **🎨 Real-Time Generative UI Dashboard**: Streams dynamic UI recommendation cards over WebSockets via Redis Pub/Sub directly to a Next.js 14 App Router dashboard with zero page reloads.
 - **🔎 Dynamic SKU & Product Search**: Type ANY product name or SKU (e.g. `ASUS TUF Gaming F16`, `iPhone 15 Pro`, `Sony WH-1000XM5`), whether tracked in inventory or not, to trigger live web price discovery.
 - **🛡️ Strict Non-Bypassable Margin Guardrails**: Guarantees zero negative margins and strict Minimum Advertised Price (MAP) compliance through deterministic pricing bounds:
   $$\text{Price Floor} = \max\left(\text{COGS} \times (1.0 + \text{Min Margin \%}),\ \text{MAP Price}\right)$$
+- **💾 Persistent Price Approvals**: One-click price change approval workflow that updates recommendations, synchronizes catalog prices in MySQL, and persists approval states across browser refreshes via `localStorage` & backend APIs.
 - **📤 CSV Catalog & Sourcing Import**: Upload wholesale purchase costs (**COGS**) and inventory catalog files via CSV with instant database synchronization.
 - **🇮🇳 Indian Rupee (INR / ₹) Native Support**: Full locale-specific pricing formatting (`Intl.NumberFormat('en-IN')`) across all charts, tables, and notifications.
-- **✅ One-Click Live Price Approval**: Instant approval workflow that marks recommendations as approved, updates active database pricing, and synces store catalogs.
 
 ---
 
@@ -21,6 +22,7 @@ An enterprise-grade, real-time autonomous competitive intelligence and dynamic p
 
 ```mermaid
 graph TD
+    Auth["Firebase Auth (Google & Email/Pass)"]
     UI["Next.js 14 Dashboard"]
     API["FastAPI REST & WebSockets"]
     Orchestrator["Pricing Orchestrator Engine"]
@@ -30,6 +32,7 @@ graph TD
     Redis[("Redis Pub/Sub & Celery")]
     Chroma[("ChromaDB Vector Store")]
 
+    Auth -->|Authenticate User| UI
     UI -->|1. Trigger Price Scan / Search SKU| API
     UI -->|2. Upload CSV Catalog & COGS| API
     API -->|3. Run Pricing Pipeline| Orchestrator
@@ -49,6 +52,7 @@ graph TD
 | Layer | Technology | Description |
 |---|---|---|
 | **Frontend** | Next.js 14, TypeScript, Tailwind CSS, Recharts, Framer Motion | Dynamic Generative UI Component Registry & WebSocket client |
+| **Authentication** | Firebase Auth (Google OAuth & Email/Pass), js-cookie | Secure session management and Next.js middleware route protection |
 | **Backend API** | FastAPI, Uvicorn, Python 3.11, Pydantic v2 | High-performance async REST API & WebSocket handlers |
 | **Async Tasks** | Celery 5, Redis 7 | Scheduled cron scanning background tasks & Pub/Sub broker |
 | **Database** | MySQL 8.0, SQLAlchemy ORM, Alembic | Relational database mapping products, prices, and audit logs |
@@ -82,9 +86,9 @@ SERPER_API_KEY=your_serper_api_key_here
 ```
 
 ### 4. Launch the Complete Containerized Stack
-Run a single Docker command from the project root:
+Run a single Docker Compose command from the project root:
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ---
@@ -93,7 +97,7 @@ docker-compose up -d --build
 
 | Container Name | Local URL / Port | Description |
 |---|---|---|
-| **`pricing_frontend`** | `http://localhost:3000/dashboard` | Next.js 14 Dashboard UI |
+| **`pricing_frontend`** | `http://localhost:3000` | Next.js 14 Dashboard UI & Login |
 | **`pricing_fastapi`** | `http://localhost:8000` | FastAPI REST Backend (Swagger Docs: `http://localhost:8000/docs`) |
 | **`pricing_mysql`** | `localhost:3307` mapped to `3306` | MySQL 8.0 Relational Database |
 | **`pricing_redis`** | `localhost:6379` | Redis Cache & Pub/Sub Broker |
@@ -111,6 +115,7 @@ docker-compose up -d --build
 | `POST` | `/api/products` | Registers a new product into the database catalog |
 | `POST` | `/api/trigger/{sku}` | Triggers live web search & streams a Generative UI card for ANY SKU |
 | `POST` | `/api/approve/{sku}` | Approves latest recommended price & updates active store selling price |
+| `GET` | `/api/approved-skus` | Returns all previously approved SKU price recommendations |
 | `POST` | `/api/upload-catalog` | Uploads a CSV catalog file containing SKUs and wholesale COGS costs |
 | `WS` | `/ws/pricing-feed` | WebSocket connection streaming real-time Generative UI card payloads |
 

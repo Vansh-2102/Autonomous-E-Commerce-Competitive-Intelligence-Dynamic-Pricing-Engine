@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { useLivePricingFeed } from "@/hooks/useLivePricingFeed";
 import { GenerativeRenderer } from "@/components/GenerativeRenderer";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatus";
-import { Search, Zap, CheckCircle2, ShieldCheck, Cpu, Play, Upload, FileText } from "lucide-react";
+import { Search, Zap, CheckCircle2, ShieldCheck, Cpu, Play, Upload, FileText, LogOut, User as UserIcon } from "lucide-react";
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws/pricing-feed";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -18,7 +20,32 @@ interface CatalogProduct {
   map_price: number;
 }
 
+function UserAvatar({ photoURL, name, email }: { photoURL?: string | null; name?: string | null; email?: string | null }) {
+  const [imgError, setImgError] = useState(false);
+  const initial = (name || email || "U").charAt(0).toUpperCase();
+
+  if (photoURL && !imgError) {
+    return (
+      <img
+        src={photoURL}
+        alt={name || "Avatar"}
+        referrerPolicy="no-referrer"
+        onError={() => setImgError(true)}
+        className="w-6 h-6 rounded-full object-cover ring-1 ring-emerald-500/50"
+      />
+    );
+  }
+
+  return (
+    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-indigo-600 text-gray-950 font-bold text-xs flex items-center justify-center shadow-sm">
+      {initial}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user, loading, logout } = useAuth();
   const { cards, setCards, connectionStatus, reconnect } = useLivePricingFeed(WS_URL);
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -26,6 +53,12 @@ export default function DashboardPage() {
   const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
 
   const fetchCatalog = () => {
     fetch(`${API_URL}/api/products`)
@@ -88,6 +121,23 @@ export default function DashboardPage() {
 
   const handleApprove = async (sku: string) => {
     try {
+      // Find current recommended price for the target SKU
+      const targetCard = cards.find((c) => c.props.sku === sku);
+      const approvedPrice = targetCard ? targetCard.props.recommendedPrice : undefined;
+
+      // Save to localStorage for persistent state across browser refreshes
+      try {
+        const raw = localStorage.getItem("approved_pricing_map") || "{}";
+        const map = JSON.parse(raw);
+        map[sku] = {
+          isApproved: true,
+          approvedPrice: approvedPrice,
+        };
+        localStorage.setItem("approved_pricing_map", JSON.stringify(map));
+      } catch (e) {
+        console.warn("Could not write approval to localStorage:", e);
+      }
+
       const res = await fetch(`${API_URL}/api/approve/${encodeURIComponent(sku)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -191,7 +241,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end flex-wrap">
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
@@ -209,6 +259,28 @@ export default function DashboardPage() {
               Sample CSV
             </button>
             <ConnectionStatusBadge status={connectionStatus} onReconnect={reconnect} />
+
+            {/* User Profile & Logout */}
+            {user && (
+              <div className="flex items-center gap-2.5 pl-2 border-l border-gray-800">
+                <div className="flex items-center gap-2 bg-gray-900 border border-gray-800 py-1.5 px-3 rounded-xl">
+                  <UserAvatar photoURL={user.photoURL} name={user.displayName} email={user.email} />
+                  <span className="text-xs font-semibold text-gray-200 max-w-[120px] truncate">
+                    {user.displayName || user.email?.split("@")[0] || "User"}
+                  </span>
+                </div>
+                <button
+                  onClick={async () => {
+                    await logout();
+                    router.push("/login");
+                  }}
+                  className="bg-gray-900 hover:bg-rose-950/40 text-gray-400 hover:text-rose-400 border border-gray-800 hover:border-rose-500/50 text-xs font-semibold p-2 rounded-xl transition-all shadow-md flex items-center justify-center"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

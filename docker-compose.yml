@@ -41,6 +41,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: pricing_fastapi
+    restart: always
     ports:
       - "8000:8000"
     environment:
@@ -58,6 +59,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: pricing_celery_worker
+    restart: always
     command: celery -A app.workers.celery_app worker --loglevel=info
     environment:
       - DATABASE_URL=mysql+pymysql://pricing_user:pricing_password@mysql:3306/pricing_db
@@ -74,6 +76,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: pricing_celery_beat
+    restart: always
     command: celery -A app.workers.celery_app beat --loglevel=info
     environment:
       - DATABASE_URL=mysql+pymysql://pricing_user:pricing_password@mysql:3306/pricing_db
