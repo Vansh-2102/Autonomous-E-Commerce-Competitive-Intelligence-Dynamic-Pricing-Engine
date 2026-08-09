@@ -79,10 +79,20 @@ Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
-Fill in your API keys in `.env`:
+Fill in your API keys and Firebase credentials in `.env`:
 ```env
+# AI & Web Scraper API Keys
 GROQ_API_KEY=your_groq_api_key_here
 SERPER_API_KEY=your_serper_api_key_here
+
+# Firebase Authentication Configuration (Google OAuth & Email/Password Sign-In)
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain_here
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id_here
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket_here
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id_here
+NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id_here
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id_here
 ```
 
 ### 4. Launch the Complete Containerized Stack
