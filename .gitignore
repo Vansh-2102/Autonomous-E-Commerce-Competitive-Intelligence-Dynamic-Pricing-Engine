@@ -3,8 +3,7 @@
 .env.local
 *.env
 frontend/.env.local
-!.env.example
-!.env.local.example
+
 
 # Python
 __pycache__/
