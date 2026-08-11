@@ -48,6 +48,8 @@ services:
       - DATABASE_URL=mysql+pymysql://pricing_user:pricing_password@mysql:3306/pricing_db
       - REDIS_URL=redis://redis:6379/0
       - CHROMA_URL=http://chroma:8000
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - SERPER_API_KEY=${SERPER_API_KEY}
     depends_on:
       mysql:
         condition: service_healthy
@@ -65,6 +67,8 @@ services:
       - DATABASE_URL=mysql+pymysql://pricing_user:pricing_password@mysql:3306/pricing_db
       - REDIS_URL=redis://redis:6379/0
       - CHROMA_URL=http://chroma:8000
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - SERPER_API_KEY=${SERPER_API_KEY}
     depends_on:
       mysql:
         condition: service_healthy
@@ -81,6 +85,8 @@ services:
     environment:
       - DATABASE_URL=mysql+pymysql://pricing_user:pricing_password@mysql:3306/pricing_db
       - REDIS_URL=redis://redis:6379/0
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - SERPER_API_KEY=${SERPER_API_KEY}
     depends_on:
       mysql:
         condition: service_healthy
