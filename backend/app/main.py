@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api.v1.endpoints import products, approve, websocket
+from app.api.v1.endpoints import products, approve, websocket, chatbot
 
 import time
 
@@ -61,6 +61,7 @@ app.add_middleware(
 app.include_router(products.router, prefix=settings.API_V1_STR)
 app.include_router(approve.router, prefix=settings.API_V1_STR)
 app.include_router(websocket.router)
+app.include_router(chatbot.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

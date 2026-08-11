@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { AuthProvider } from "@/context/AuthContext";
+import { ChatBot } from "@/components/ChatBot";
 
 export const metadata: Metadata = {
   title: "Autonomous Dynamic Pricing Engine Dashboard",
@@ -9,13 +10,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="bg-[#0b0f19] text-gray-100 antialiased" suppressHydrationWarning>
-        <AuthProvider>{children}</AuthProvider>
+      <body
+        className="bg-[#0b0f19] text-gray-100 antialiased"
+        suppressHydrationWarning
+      >
+        <AuthProvider>
+          {children}
+          <ChatBot />
+        </AuthProvider>
       </body>
     </html>
   );
