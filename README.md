@@ -1,12 +1,13 @@
 # 🛍️ Autonomous E-Commerce Competitive Intelligence & Dynamic Pricing Engine
 
-An enterprise-grade, real-time autonomous competitive intelligence and dynamic pricing engine powered by **Next.js 14 Generative UI**, **FastAPI**, **Firebase Authentication**, **Serper Live Web Scraping**, **Groq LLaMA 3 Sentiment Reasoning**, **ChromaDB Vector Matching**, **Celery Async Task Queues**, and **Deterministic Margin Guardrails**.
+An enterprise-grade, real-time autonomous competitive intelligence and dynamic pricing engine powered by **Next.js 14 Generative UI**, **PriceBot AI Support Chatbot**, **FastAPI**, **Firebase Authentication**, **Serper Live Web Scraping**, **Groq LLaMA 3 Sentiment Reasoning**, **ChromaDB Vector Matching**, **Celery Async Task Queues**, and **Deterministic Margin Guardrails**.
 
 ---
 
 ## ✨ Key Features
 
 - **🔐 Dual Authentication Base Login**: Secure dashboard access supporting **Google OAuth Sign-In** and **Email & Password** login/signup via Firebase Auth, complete with Next.js middleware route guarding, profile avatars, and session cookies.
+- **🤖 PriceBot Customer Support Chatbot**: Embedded floating customer care assistant powered by **Groq LLaMA 3.3 70B** with an automated rule-based backend fallback engine, client offline resilience, quick-action suggestion chips, full markdown response rendering, and hotkey shortcut toggle (`Ctrl+Shift+C`).
 - **🌐 Live Web & E-Commerce Scraping**: Scrapes real-time live prices directly from Indian e-commerce marketplaces (**Amazon.in**, **Flipkart**, **Croma**, **Reliance Digital**, etc.) via Serper Google Shopping API and Playwright.
 - **🎨 Real-Time Generative UI Dashboard**: Streams dynamic UI recommendation cards over WebSockets via Redis Pub/Sub directly to a Next.js 14 App Router dashboard with zero page reloads.
 - **🔎 Dynamic SKU & Product Search**: Type ANY product name or SKU (e.g. `ASUS TUF Gaming F16`, `iPhone 15 Pro`, `Sony WH-1000XM5`), whether tracked in inventory or not, to trigger live web price discovery.
@@ -23,11 +24,12 @@ An enterprise-grade, real-time autonomous competitive intelligence and dynamic p
 ```mermaid
 graph TD
     Auth["Firebase Auth (Google & Email/Pass)"]
-    UI["Next.js 14 Dashboard"]
+    UI["Next.js 14 Dashboard & PriceBot Widget"]
     API["FastAPI REST & WebSockets"]
     Orchestrator["Pricing Orchestrator Engine"]
+    ChatbotEndpoint["/api/chatbot Endpoint"]
     Serper["Serper Google Shopping API"]
-    Groq["Groq LLaMA 3 AI Sentiment Agent"]
+    Groq["Groq LLaMA 3 AI Sentiment & PriceBot Agent"]
     MySQL[("MySQL Database")]
     Redis[("Redis Pub/Sub & Celery")]
     Chroma[("ChromaDB Vector Store")]
@@ -35,14 +37,17 @@ graph TD
     Auth -->|Authenticate User| UI
     UI -->|1. Trigger Price Scan / Search SKU| API
     UI -->|2. Upload CSV Catalog & COGS| API
-    API -->|3. Run Pricing Pipeline| Orchestrator
-    Orchestrator -->|4. Live Web Price Scrape| Serper
-    Orchestrator -->|5. Demand & Sentiment Analysis| Groq
-    Orchestrator -->|6. Fetch Sourcing Cost & MAP| MySQL
-    Orchestrator -->|7. Semantic Title Match| Chroma
-    Orchestrator -->|8. Persist Price Recommendation| MySQL
-    Orchestrator -->|9. Publish Card Event| Redis
-    Redis -->|10. Stream Generative UI Card| UI
+    UI -->|3. Chat with PriceBot| API
+    API -->|4. Run Pricing Pipeline| Orchestrator
+    API -->|5. AI Chat / Fallback Engine| ChatbotEndpoint
+    ChatbotEndpoint -->|6. Groq LLaMA 3 Chat Completion| Groq
+    Orchestrator -->|7. Live Web Price Scrape| Serper
+    Orchestrator -->|8. Demand & Sentiment Analysis| Groq
+    Orchestrator -->|9. Fetch Sourcing Cost & MAP| MySQL
+    Orchestrator -->|10. Semantic Title Match| Chroma
+    Orchestrator -->|11. Persist Price Recommendation| MySQL
+    Orchestrator -->|12. Publish Card Event| Redis
+    Redis -->|13. Stream Generative UI Card| UI
 ```
 
 ---
@@ -51,13 +56,13 @@ graph TD
 
 | Layer | Technology | Description |
 |---|---|---|
-| **Frontend** | Next.js 14, TypeScript, Tailwind CSS, Recharts, Framer Motion | Dynamic Generative UI Component Registry & WebSocket client |
+| **Frontend** | Next.js 14, TypeScript, Tailwind CSS, Recharts, Framer Motion | Dynamic Generative UI Component Registry, PriceBot floating assistant & WebSocket client |
 | **Authentication** | Firebase Auth (Google OAuth & Email/Pass), js-cookie | Secure session management and Next.js middleware route protection |
 | **Backend API** | FastAPI, Uvicorn, Python 3.11, Pydantic v2 | High-performance async REST API & WebSocket handlers |
 | **Async Tasks** | Celery 5, Redis 7 | Scheduled cron scanning background tasks & Pub/Sub broker |
 | **Database** | MySQL 8.0, SQLAlchemy ORM, Alembic | Relational database mapping products, prices, and audit logs |
 | **Vector DB** | ChromaDB | Semantic vector embeddings for product SKU matching |
-| **AI Agents** | Groq LLaMA 3 API | Natural language sentiment & market demand reasoning |
+| **AI Agents** | Groq LLaMA 3 API (LLaMA 3.3 70B) | Natural language sentiment, market demand reasoning & PriceBot AI customer support chatbot |
 | **Web Scrapers** | Serper Shopping API & Playwright | Real-time live market price extraction |
 
 ---
@@ -127,6 +132,7 @@ docker compose up -d --build
 | `POST` | `/api/approve/{sku}` | Approves latest recommended price & updates active store selling price |
 | `GET` | `/api/approved-skus` | Returns all previously approved SKU price recommendations |
 | `POST` | `/api/upload-catalog` | Uploads a CSV catalog file containing SKUs and wholesale COGS costs |
+| `POST` | `/api/chatbot` | Interactive AI customer support chatbot (Groq LLaMA 3.3 70B with rule-based fallback) |
 | `WS` | `/ws/pricing-feed` | WebSocket connection streaming real-time Generative UI card payloads |
 
 ---
